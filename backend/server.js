@@ -3,14 +3,14 @@ const mysql = require('mysql2');
 const cors = require('cors');
 
 const app = express();
-app.use(cors()); // izinkan frontend mengakses API
+app.use(cors());
+app.use(express.json());
 
-// Sesuaikan dengan konfigurasi MySQL Workbench kamu
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',        // username MySQL kamu
-  password: ':4GuNg210105',        // password MySQL kamu
-  database: 'iot_db'
+  user: 'root',
+  password: ':4GuNg210105',
+  database: 'iot_db',
 });
 
 db.connect((err) => {
@@ -21,18 +21,98 @@ db.connect((err) => {
   console.log('Terhubung ke MySQL!');
 });
 
-// Endpoint pengganti select.php
-app.get('/api/select', (req, res) => {
-  const sql = 'SELECT id_sensor, Temperature, Humidity FROM iot';
+function normalizePayload(body) {
+  return {
+    sensor_id: body.sensor_id,
+    timestamp: body.timestamp,
+    temperature: body.temperature,
+    humidity: body.humidity,
+    pressure: body.pressure,
+    latitude: body.latitude ?? body.location?.latitude,
+    longitude: body.longitude ?? body.location?.longitude,
+    status: body.status,
+  };
+}
+
+app.get('/api/sensor-data', (req, res) => {
+  const sql = `
+    SELECT
+      sensor_id,
+      timestamp,
+      temperature,
+      humidity,
+      pressure,
+      latitude,
+      longitude,
+      status
+    FROM sensor_data
+    ORDER BY timestamp ASC
+  `;
+
   db.query(sql, (err, results) => {
     if (err) {
-      return res.json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message });
     }
-    if (results.length > 0) {
-      res.json({ success: true, data: results });
-    } else {
-      res.json({ success: false, message: 'No data found' });
+
+    return res.json({ success: true, data: results });
+  });
+});
+
+app.get('/api/select', (req, res) => {
+  const sql = `
+    SELECT
+      sensor_id,
+      timestamp,
+      temperature,
+      humidity,
+      pressure,
+      latitude,
+      longitude,
+      status
+    FROM sensor_data
+    ORDER BY timestamp ASC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: err.message });
     }
+
+    return res.json({ success: true, data: results });
+  });
+});
+
+app.post('/api/sensor-data', (req, res) => {
+  const payload = normalizePayload(req.body || {});
+
+  const sql = `
+    INSERT INTO sensor_data
+      (sensor_id, timestamp, temperature, humidity, pressure, latitude, longitude, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    payload.sensor_id,
+    payload.timestamp,
+    payload.temperature,
+    payload.humidity,
+    payload.pressure,
+    payload.latitude,
+    payload.longitude,
+    payload.status,
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Data sensor berhasil disimpan',
+      insertedId: result.insertId,
+      data: payload,
+    });
   });
 });
 

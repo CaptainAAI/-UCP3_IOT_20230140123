@@ -1,12 +1,71 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chart.js IoT</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f5f7fb;
+        color: #111827;
+      }
+
+      .page {
+        width: min(1200px, calc(100% - 32px));
+        margin: 24px auto 32px;
+      }
+
+      .status {
+        margin: 0 0 16px;
+        color: #4b5563;
+      }
+
+      .chart-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      .chart-card {
+        background: #fff;
+        border: 1px solid #dbe2ea;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+      }
+
+      .chart-card h2 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+
+      .chart-card p {
+        margin: 0 0 12px;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .chart-wrap {
+        height: 320px;
+      }
+
+      .error {
+        color: #b42318;
+        background: #fef3f2;
+        border: 1px solid #fecdca;
+        padding: 12px 14px;
+        border-radius: 12px;
+      }
+    </style>
   </head>
   <body>
-    <div style="width: 800px;">
-      <canvas id="acquisitions"></canvas>
-    </div>
+    <main class="page">
+      <div id="status" class="status">Memuat data sensor...</div>
+      <section id="chartGrid" class="chart-grid"></section>
+    </main>
     <script type="module" src="acquisitions.js"></script>
   </body>
 </html>
